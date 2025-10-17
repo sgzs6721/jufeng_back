@@ -74,6 +74,12 @@ public class ActivityRegistrationRepository {
                 .orderBy(field("registration_time").desc())
                 .fetchInto(ActivityRegistration.class);
     }
+
+    public int deleteTestData() {
+        return dsl.deleteFrom(table("activity_registrations"))
+                .where(field("name").like("测试用户%"))
+                .execute();
+    }
 }
 
 
