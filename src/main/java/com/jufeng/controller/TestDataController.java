@@ -20,32 +20,31 @@ public class TestDataController {
 
     /**
      * 插入测试数据
-     * 从2025年10月17日18:05开始，每3小时插入一条，到18号06:05
+     * 从2025年10月17日18:15开始，每10分钟插入一条，共10条
      */
     @PostMapping("/insert-test-data")
     public ApiResponse<List<ActivityRegistration>> insertTestData() {
         try {
             List<ActivityRegistration> insertedRecords = new ArrayList<>();
             
-            // 定义测试数据
-            String[][] testData = {
-                {"测试用户1", "13800000001", "PACKAGE_30", "2025-10-17T18:05:00", "自动测试数据 - 18:05"},
-                {"测试用户2", "13800000002", "PACKAGE_60", "2025-10-17T21:05:00", "自动测试数据 - 21:05"},
-                {"测试用户3", "13800000003", "PACKAGE_30", "2025-10-18T00:05:00", "自动测试数据 - 00:05"},
-                {"测试用户4", "13800000004", "PACKAGE_60", "2025-10-18T03:05:00", "自动测试数据 - 03:05"},
-                {"测试用户5", "13800000005", "PACKAGE_30", "2025-10-18T06:05:00", "自动测试数据 - 06:05"}
-            };
+            // 起始时间：2025-10-17 18:15
+            LocalDateTime startTime = LocalDateTime.of(2025, 10, 17, 18, 15, 0);
             
-            for (String[] data : testData) {
+            // 插入10条测试数据，每10分钟一条
+            for (int i = 0; i < 10; i++) {
+                LocalDateTime registrationTime = startTime.plusMinutes(i * 10);
+                
                 ActivityRegistration registration = new ActivityRegistration();
-                registration.setName(data[0]);
-                registration.setPhone(data[1]);
-                registration.setCoursePackage(data[2]);
+                registration.setName("测试用户" + (i + 1));
+                registration.setPhone(String.format("138000000%02d", i + 1));
+                // 交替选择课程包
+                registration.setCoursePackage(i % 2 == 0 ? "PACKAGE_30" : "PACKAGE_60");
                 registration.setActivityName("10月18日店庆特惠！乒乓球培训超值课包来袭！");
                 registration.setActivityDate(LocalDate.of(2025, 10, 18));
-                registration.setRegistrationTime(LocalDateTime.parse(data[3]));
+                registration.setRegistrationTime(registrationTime);
                 registration.setStatus("PENDING");
-                registration.setRemark(data[4]);
+                registration.setRemark(String.format("自动测试数据 - %02d:%02d", 
+                    registrationTime.getHour(), registrationTime.getMinute()));
                 
                 Long id = registrationRepository.save(registration);
                 registration.setId(id);
