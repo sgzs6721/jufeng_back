@@ -54,11 +54,12 @@ public class ActivityRegistrationRepository {
     }
 
     public long countByActivityDateAndStatus(LocalDate activityDate, String status) {
-        return dsl.selectCount()
+        Long count = dsl.selectCount()
                 .from(table("activity_registrations"))
                 .where(field("activity_date").eq(activityDate))
                 .and(field("status").eq(status))
                 .fetchOne(0, Long.class);
+        return count != null ? count : 0L;
     }
 
     public ActivityRegistration findById(Long id) {
