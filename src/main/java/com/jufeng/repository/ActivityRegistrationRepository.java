@@ -18,18 +18,32 @@ public class ActivityRegistrationRepository {
     private DSLContext dsl;
 
     public Long save(ActivityRegistration registration) {
-        return dsl.insertInto(table("activity_registrations"))
-                .set(field("name"), registration.getName())
-                .set(field("phone"), registration.getPhone())
-                .set(field("course_package"), registration.getCoursePackage())
-                .set(field("activity_name"), registration.getActivityName())
-                .set(field("activity_date"), registration.getActivityDate())
-                .set(field("registration_time"), registration.getRegistrationTime())
-                .set(field("status"), registration.getStatus())
-                .set(field("remark"), registration.getRemark())
-                .returningResult(field("id", Long.class))
-                .fetchOne()
-                .value1();
+        try {
+            org.jooq.Record1<Long> result = dsl.insertInto(table("activity_registrations"))
+                    .set(field("name"), registration.getName())
+                    .set(field("phone"), registration.getPhone())
+                    .set(field("course_package"), registration.getCoursePackage())
+                    .set(field("activity_name"), registration.getActivityName())
+                    .set(field("activity_date"), registration.getActivityDate())
+                    .set(field("registration_time"), registration.getRegistrationTime())
+                    .set(field("status"), registration.getStatus())
+                    .set(field("remark"), registration.getRemark())
+                    .returningResult(field("id", Long.class))
+                    .fetchOne();
+            
+            if (result == null) {
+                throw new RuntimeException("插入记录失败：未返回结果");
+            }
+            
+            Long id = result.value1();
+            if (id == null) {
+                throw new RuntimeException("插入记录失败：未获取到ID");
+            }
+            
+            return id;
+        } catch (Exception e) {
+            throw new RuntimeException("保存报名记录失败: " + e.getMessage(), e);
+        }
     }
 
     public List<ActivityRegistration> findByActivityDate(LocalDate activityDate) {
