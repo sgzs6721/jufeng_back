@@ -86,12 +86,12 @@ public class TestDataController {
         try {
             Map<String, Object> status = new HashMap<>();
             status.put("insertedCount", testDataScheduledTask.getInsertedCount());
-            status.put("maxCount", 10);
-            status.put("isRunning", testDataScheduledTask.getInsertedCount() < 10);
-            status.put("activityStartTime", "2025-10-17 18:30:00");
+            status.put("maxCount", 5);
+            status.put("isRunning", testDataScheduledTask.getInsertedCount() < 5);
+            status.put("activityStartTime", "第一阶段: 17号22:30, 18号01:30; 第二阶段: 18号09:00, 13:00, 17:00");
             status.put("activityEndTime", "2025-10-18 23:59:59");
-            status.put("interval", "每5分钟");
-            status.put("description", "定时任务从18:30开始，每5分钟自动插入一条测试数据，最多10条");
+            status.put("interval", "第一阶段每3小时，第二阶段每4小时");
+            status.put("description", "定时任务在指定时间点自动插入测试数据，共5条");
             return ApiResponse.success("获取定时任务状态成功", status);
         } catch (Exception e) {
             return ApiResponse.error("获取定时任务状态失败: " + e.getMessage());
