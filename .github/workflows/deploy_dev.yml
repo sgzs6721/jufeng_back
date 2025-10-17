@@ -1,0 +1,56 @@
+name: deploy_dev_jufeng_back
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  dev-jufeng-back:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: JDK 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 8
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Flyway Clean
+        if: ${{ vars.FLYWAY_CLEAN == '1' }}
+        run: mvn flyway:clean -P dev
+      - name: Build application jufeng_back
+        run: mvn flyway:repair -P dev && mvn flyway:migrate -P dev && mvn jooq-codegen:generate -P dev && mvn clean compile -P dev && mvn install -P dev -Dmaven.test.skip=true
+      - name: Scp jar To HW Server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HW_TEST_SERVER }}
+          username: ${{ secrets.HW_SERVER_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          source: ${{ github.workspace }}/target/jufeng-backend-dev.jar
+          target: /root/jufeng
+          strip_components: 6
+      - name: Run Java Service Of jufeng-back on HW Server
+        uses: fifsky/ssh-action@master
+        with:
+          command: |
+            # 设置环境变量指定Spring profile
+            export SPRING_PROFILES_ACTIVE=dev
+            supervisorctl status jufeng-back-dev | awk '{print $2}' | while read line; do 
+              if [ $line == 'RUNNING' ]; then 
+                supervisorctl restart jufeng-back-dev
+              else 
+                supervisorctl start jufeng-back-dev
+              fi 
+            done
+          host: ${{ secrets.HW_TEST_SERVER }}
+          user: ${{ secrets.HW_SERVER_USERNAME }}
+          pass: ${{ secrets.HW_SERVER_PWD }}
+          args: "-tt"
+
