@@ -19,7 +19,8 @@ public class ActivityRegistrationRepository {
 
     public Long save(ActivityRegistration registration) {
         try {
-            org.jooq.Record1<Long> result = dsl.insertInto(table("activity_registrations"))
+            // MySQL 不支持 RETURNING，使用 execute() + LAST_INSERT_ID() 方式
+            dsl.insertInto(table("activity_registrations"))
                     .set(field("name"), registration.getName())
                     .set(field("phone"), registration.getPhone())
                     .set(field("course_package"), registration.getCoursePackage())
@@ -28,16 +29,14 @@ public class ActivityRegistrationRepository {
                     .set(field("registration_time"), registration.getRegistrationTime())
                     .set(field("status"), registration.getStatus())
                     .set(field("remark"), registration.getRemark())
-                    .returningResult(field("id", Long.class))
-                    .fetchOne();
+                    .execute();
             
-            if (result == null) {
-                throw new RuntimeException("插入记录失败：未返回结果");
-            }
+            // 获取最后插入的ID
+            Long id = dsl.select(field("LAST_INSERT_ID()", Long.class))
+                    .fetchOne(0, Long.class);
             
-            Long id = result.value1();
-            if (id == null) {
-                throw new RuntimeException("插入记录失败：未获取到ID");
+            if (id == null || id == 0) {
+                throw new RuntimeException("插入记录失败：未获取到自增ID");
             }
             
             return id;
