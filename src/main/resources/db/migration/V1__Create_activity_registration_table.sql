@@ -17,3 +17,5 @@ CREATE TABLE activity_registrations (
     INDEX idx_registration_time (registration_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='活动报名表';
 
+
+
